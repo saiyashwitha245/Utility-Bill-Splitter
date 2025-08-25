@@ -1,0 +1,116 @@
+<div class="payments-container">
+  <div class="header">
+    <h1>💳 Payments</h1>
+    <div style="display:flex; gap:12px;">
+      <button class="btn btn-secondary" (click)="goBack()">← Back</button>
+      <button class="btn btn-primary" (click)="showCreateForm = true" *ngIf="!showCreateForm">
+        <i class="icon">➕</i> Record Payment
+      </button>
+    </div>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+  <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <!-- Create Payment Form -->
+  <div class="form-container" *ngIf="showCreateForm">
+    <h2>Record New Payment</h2>
+    <form [formGroup]="paymentForm" (ngSubmit)="createPayment()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="billId">Bill *</label>
+          <select id="billId" formControlName="billId" (change)="onBillChange()">
+            <option value="">Select bill</option>
+            <option *ngFor="let b of bills" [value]="b.id">{{ b.title }} — ₹{{ b.totalAmount | number:'1.2-2' }}</option>
+          </select>
+          <div class="error" *ngIf="paymentForm.get('billId')?.invalid && paymentForm.get('billId')?.touched">
+            Bill is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="billShareId">Participant *</label>
+          <select id="billShareId" formControlName="billShareId" (change)="onParticipantChange()">
+            <option value="">Select participant</option>
+            <option *ngFor="let p of participants" [value]="p.id">
+              {{ p.username }} (₹{{ p.shareAmount | number:'1.2-2' }})
+            </option>
+          </select>
+          <div class="error" *ngIf="paymentForm.get('billShareId')?.invalid && paymentForm.get('billShareId')?.touched">
+            Participant is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="amountPaid">Amount (₹) *</label>
+          <input type="number" id="amountPaid" formControlName="amountPaid" placeholder="Enter amount" step="0.01" min="0.01">
+          <div class="error" *ngIf="paymentForm.get('amountPaid')?.invalid && paymentForm.get('amountPaid')?.touched">
+            Amount is required and must be greater than 0
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="method">Payment Method *</label>
+          <select id="method" formControlName="method">
+            <option value="">Select method</option>
+            <option value="Cash">Cash</option>
+            <option value="UPI">UPI</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+            <option value="Credit Card">Credit Card</option>
+            <option value="Debit Card">Debit Card</option>
+          </select>
+          <div class="error" *ngIf="paymentForm.get('method')?.invalid && paymentForm.get('method')?.touched">
+            Payment method is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="userId">User ID *</label>
+          <input type="number" id="userId" formControlName="userId" placeholder="Auto-filled" min="1" [readOnly]="true">
+          <div class="error" *ngIf="paymentForm.get('userId')?.invalid && paymentForm.get('userId')?.touched">
+            User ID is required
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="paymentForm.invalid || isLoading">
+          <span *ngIf="isLoading">Recording...</span>
+          <span *ngIf="!isLoading">Record Payment</span>
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="cancelCreate()">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading" *ngIf="isLoading && !showCreateForm">
+    <div class="spinner"></div>
+    <p>Loading payments...</p>
+  </div>
+
+  <!-- Payments List -->
+  <div class="payments-grid" *ngIf="!isLoading">
+    <div class="payment-card" *ngFor="let payment of payments">
+      <div class="payment-header">
+        <h3>💰 ₹{{ payment.amount | number:'1.2-2' }}</h3>
+        <span class="payment-method" [class]="getMethodClass(payment.method)">{{ payment.method }}</span>
+      </div>
+      <div class="payment-details">
+        <p><strong>📅 Paid:</strong> {{ payment.paidAt | date:'mediumDate' }}</p>
+        <p><strong>📄 Bill ID:</strong> {{ payment.billId }}</p>
+        <p><strong>👤 User ID:</strong> {{ payment.userId }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && payments.length === 0 && !showCreateForm">
+    <div class="empty-icon">💸</div>
+    <h3>No payments recorded yet</h3>
+    <p>Record your first payment to get started</p>
+    <button class="btn btn-primary" (click)="showCreateForm = true">Record Payment</button>
+  </div>
+</div>
+

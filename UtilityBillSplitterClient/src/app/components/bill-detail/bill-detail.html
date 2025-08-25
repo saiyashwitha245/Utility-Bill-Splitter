@@ -1,0 +1,37 @@
+<div class="bill-detail-container" *ngIf="!isLoading">
+  <div class="header">
+    <button class="btn-secondary" (click)="goBack()">← Back</button>
+    <h1>Bill Details</h1>
+  </div>
+
+  <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div *ngIf="bill" class="bill-card">
+    <div class="bill-header">
+      <h2>{{ bill.title }}</h2>
+      <span class="status" [class]="'status-' + bill.status.toLowerCase()">{{ bill.status }}</span>
+    </div>
+
+    <div class="bill-meta">
+      <div><strong>Total:</strong> ₹{{ bill.totalAmount | number:'1.2-2' }}</div>
+      <div><strong>Due:</strong> {{ bill.dueDate | date:'MMM dd, yyyy' }}</div>
+      <div><strong>Utility:</strong> {{ bill.utilityType }}</div>
+    </div>
+
+    <h3>Participants</h3>
+    <div class="participants">
+      <div class="participant" *ngFor="let p of bill.participants">
+        <div class="info">
+          <div class="name">{{ p.username }}</div>
+          <div class="email">{{ p.email }}</div>
+        </div>
+        <div class="amount">₹{{ p.shareAmount | number:'1.2-2' }}</div>
+        <div class="paid" [class.paid]="p.isPaid">{{ p.isPaid ? 'Paid' : 'Unpaid' }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="loading" *ngIf="isLoading">
+  <p>Loading bill details...</p>
+</div> 

@@ -1,0 +1,215 @@
+<div class="groups-container">
+      <div class="header">
+        <button class="btn-secondary" (click)="goBack()">← Back</button>
+        <h1>Groups</h1>
+        <button class="btn-primary" (click)="showCreateForm = true" *ngIf="!showCreateForm">
+          Create New Group
+        </button>
+      </div>
+
+      <!-- Success/Error Messages -->
+      <div class="alert alert-success" *ngIf="successMessage">
+        {{ successMessage }}
+      </div>
+      <div class="alert alert-error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Create Group Form -->
+      <div class="create-form" *ngIf="showCreateForm">
+        <h2>Create New Group</h2>
+        <form [formGroup]="groupForm" (ngSubmit)="createGroup()">
+          <div class="form-group">
+            <label for="name">Group Name</label>
+            <input 
+              type="text" 
+              id="name" 
+              formControlName="name" 
+              placeholder="Enter group name"
+              [class.error]="groupForm.get('name')?.invalid && groupForm.get('name')?.touched"
+            />
+            <div class="error-message" *ngIf="groupForm.get('name')?.invalid && groupForm.get('name')?.touched">
+              Group name is required
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description (Optional)</label>
+            <textarea 
+              id="description" 
+              formControlName="description" 
+              placeholder="Enter group description"
+              rows="3"
+            ></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="groupForm.invalid || isLoading">
+              {{ isLoading ? 'Creating...' : 'Create Group' }}
+            </button>
+            <button type="button" class="btn-secondary" (click)="cancelCreate()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Groups List -->
+      <div class="groups-list" *ngIf="!isLoading">
+        <div class="group-card" *ngFor="let group of groups">
+          <div class="group-header">
+            <h3>{{ group.name }}</h3>
+            <span class="member-count">{{ group.memberCount }} members</span>
+          </div>
+          <p class="group-description" *ngIf="group.description">{{ group.description }}</p>
+          <div class="group-stats">
+            <div class="stat">
+              <span class="label">Total Bills:</span>
+              <span class="value">₹{{ group.totalBills | number:'1.2-2' }}</span>
+            </div>
+            <div class="stat">
+              <span class="label">Active Bills:</span>
+              <span class="value">{{ group.activeBills }}</span>
+            </div>
+          </div>
+          <div class="group-actions">
+            <button class="btn-primary" (click)="viewGroup(group)">View Details</button>
+            <button class="btn-secondary" (click)="showAddMemberForm(group)">Add Member</button>
+            <button class="btn-secondary" (click)="editGroup(group)" *ngIf="canEditGroup(group)">Edit</button>
+            <button class="btn-danger" (click)="deleteGroup(group)" *ngIf="canEditGroup(group)">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading" *ngIf="isLoading && !showCreateForm">
+        <p>Loading groups...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!isLoading && groups.length === 0 && !showCreateForm">
+        <h3>No Groups Found</h3>
+        <p>Create your first group to start splitting bills!</p>
+        <button class="btn-primary" (click)="showCreateForm = true">Create New Group</button>
+      </div>
+
+      <!-- Group Details Modal -->
+      <div class="modal-overlay" *ngIf="showGroupDetails" (click)="closeModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h2>{{ selectedGroup?.name }}</h2>
+            <button class="close-btn" (click)="closeModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <p *ngIf="selectedGroup?.description"><strong>Description:</strong> {{ selectedGroup?.description }}</p>
+            <div class="group-details">
+              <div class="detail-section">
+                <h3>Group Statistics</h3>
+                <div class="stats-grid">
+                  <div class="stat-item">
+                    <span class="stat-value">{{ selectedGroup?.memberCount }}</span>
+                    <span class="stat-label">Members</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-value">{{ selectedGroup?.activeBills }}</span>
+                    <span class="stat-label">Active Bills</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-value">₹{{ selectedGroup?.totalBills | number:'1.2-2' }}</span>
+                    <span class="stat-label">Total Amount</span>
+                  </div>
+                </div>
+              </div>
+              <div class="detail-section">
+                <h3>Members</h3>
+                <div class="members-list">
+                  <div class="member-item" *ngFor="let member of selectedGroup?.members">
+                    <div class="member-info">
+                      <span class="member-name">{{ member.username }}</span>
+                      <span class="member-email">{{ member.email }}</span>
+                    </div>
+                    <span class="member-role" [class]="'role-' + member.role.toLowerCase()">{{ member.role }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Member Modal -->
+      <div class="modal-overlay" *ngIf="showAddMember" (click)="closeAddMemberModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h2>Add Member to {{ selectedGroup?.name }}</h2>
+            <button class="close-btn" (click)="closeAddMemberModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form [formGroup]="memberForm" (ngSubmit)="addMember()">
+              <div class="form-group">
+                <label for="userSelect">Select User</label>
+                <select id="userSelect" formControlName="userId" [class.error]="memberForm.get('userId')?.invalid && memberForm.get('userId')?.touched">
+                  <option value="">Select a user to add</option>
+                  <option *ngFor="let user of availableUsers" [value]="user.id">
+                    {{ user.username }} ({{ user.email }})
+                  </option>
+                </select>
+                <div class="error-message" *ngIf="memberForm.get('userId')?.invalid && memberForm.get('userId')?.touched">
+                  Please select a user
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary" [disabled]="memberForm.invalid || isAddingMember">
+                  {{ isAddingMember ? 'Adding...' : 'Add Member' }}
+                </button>
+                <button type="button" class="btn-secondary" (click)="closeAddMemberModal()">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Group Modal -->
+      <div class="modal-overlay" *ngIf="showEditGroup" (click)="closeEditModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h2>Edit Group</h2>
+            <button class="close-btn" (click)="closeEditModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form [formGroup]="editGroupForm" (ngSubmit)="updateGroup()">
+              <div class="form-group">
+                <label for="editName">Group Name</label>
+                <input 
+                  type="text" 
+                  id="editName" 
+                  formControlName="name" 
+                  [class.error]="editGroupForm.get('name')?.invalid && editGroupForm.get('name')?.touched"
+                />
+                <div class="error-message" *ngIf="editGroupForm.get('name')?.invalid && editGroupForm.get('name')?.touched">
+                  Group name is required
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="editDescription">Description</label>
+                <textarea 
+                  id="editDescription" 
+                  formControlName="description" 
+                  rows="3"
+                ></textarea>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary" [disabled]="editGroupForm.invalid || isUpdating">
+                  {{ isUpdating ? 'Updating...' : 'Update Group' }}
+                </button>
+                <button type="button" class="btn-secondary" (click)="closeEditModal()">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>

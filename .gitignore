@@ -1,0 +1,57 @@
+# General
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
+
+# Visual Studio / .NET
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Tt]est[Rr]esults/
+*.coverage*
+*.generated.cs
+*.nupkg
+*.snupkg
+*.lock.json
+*.vc.db
+
+# Rider / JetBrains
+.idea/
+
+# VS Code
+.vscode/
+.history/
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+coverage/
+.npm/
+.pnpm-store/
+
+# Environment/Secrets (if any are added later)
+.env
+.env.*
+
+# OS specific
+Desktop.ini
+$RECYCLE.BIN/
+
+# Project-specific exclusions
+UtilityBillSplitterClient/node_modules/
+UtilityBillSplitterClient/dist/
+UtilityBillSplitterClient/.angular/
+UtilityBillSplitterAPI/obj/
+UtilityBillSplitterAPI/bin/
+UtilityBillSplitterAPI/.vs/
+UtilityBillSplitterAPI/**/*.csproj.user 

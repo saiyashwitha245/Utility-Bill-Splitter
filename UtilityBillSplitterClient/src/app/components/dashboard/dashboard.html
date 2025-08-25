@@ -1,0 +1,124 @@
+<div class="dashboard-container">
+      <!-- Header -->
+      <header class="dashboard-header">
+        <div class="header-content">
+          <div class="brand">
+            <div class="logo">📦</div>
+            <h1>Bill Splitter</h1>
+          </div>
+          <div class="nav-actions">
+            <div class="user-menu">
+              <div class="user-info">
+                <span class="user-avatar">{{ getUserInitials() }}</span>
+                <div class="user-details">
+                  <span class="user-name">{{ currentUser?.username }}</span>
+                  <span class="user-email">{{ currentUser?.email }}</span>
+                </div>
+              </div>
+              <button class="logout-btn" (click)="logout()">Logout</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Welcome Section -->
+      <section class="welcome-section">
+        <div class="welcome-content">
+          <h2>Welcome back, {{ currentUser?.username }}!</h2>
+          <p>Manage your shared expenses and split bills with ease.</p>
+        </div>
+      </section>
+
+      <!-- Feature Cards -->
+      <section class="features-section">
+        <div class="features-grid">
+          <!-- Groups Card -->
+          <div class="feature-card groups-card" (click)="navigateToGroups()">
+            <div class="card-icon">
+              <span class="icon-group">👥</span>
+            </div>
+            <div class="card-content">
+              <h3>Groups</h3>
+              <p>Create and manage expense sharing groups with friends and family.</p>
+            </div>
+            <div class="card-arrow">
+              <i class="icon-arrow">→</i>
+            </div>
+          </div>
+
+          <!-- Bills Card -->
+          <div class="feature-card bills-card" (click)="navigateToBills()">
+            <div class="card-icon">
+              <span class="icon-bill">📄</span>
+            </div>
+            <div class="card-content">
+              <h3>Bills</h3>
+              <p>Add utility bills and automatically split them among group members.</p>
+            </div>
+            <div class="card-arrow">
+              <i class="icon-arrow">→</i>
+            </div>
+          </div>
+
+          <!-- Payments Card -->
+          <div class="feature-card payments-card" (click)="navigateToPayments()">
+            <div class="card-icon">
+              <span class="icon-payment">💳</span>
+            </div>
+            <div class="card-content">
+              <h3>Payments</h3>
+              <p>Track payments made and received for shared expenses.</p>
+            </div>
+            <div class="card-arrow">
+              <i class="icon-arrow">→</i>
+            </div>
+          </div>
+
+          <!-- Notifications Card -->
+          <div class="feature-card notifications-card" (click)="navigateToNotifications()">
+            <div class="card-icon">
+              <span class="icon-notification">🔔</span>
+            </div>
+            <div class="card-content">
+              <h3>Notifications</h3>
+              <p>Stay updated with payment reminders and group activities.</p>
+            </div>
+            <div class="card-arrow">
+              <i class="icon-arrow">→</i>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Stats Section -->
+      <section class="stats-section">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">{{ stats.totalGroups }}</div>
+            <div class="stat-label">Active Groups</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">{{ stats.pendingBills }}</div>
+            <div class="stat-label">Pending Bills</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">₹{{ stats.totalOwed | number:'1.2-2' }}</div>
+            <div class="stat-label">Total Owed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">{{ stats.unreadNotifications }}</div>
+            <div class="stat-label">Notifications</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Loading indicator -->
+      <div class="loading-indicator" *ngIf="isLoading">
+        <p>Loading dashboard data...</p>
+      </div>
+
+      <!-- Error message -->
+      <div class="error-message" *ngIf="errorMessage">
+        <p>{{ errorMessage }}</p>
+      </div>
+    </div>

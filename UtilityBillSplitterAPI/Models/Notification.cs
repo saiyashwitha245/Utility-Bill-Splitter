@@ -1,0 +1,18 @@
+﻿namespace UtilityBillSplitterAPI.Models
+{
+    public class Notification
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public string Message { get; set; }
+
+        public DateTime SentOn { get; set; } = DateTime.UtcNow;
+
+        public required string RecipientEmail { get; set; }
+        public bool IsRead { get; set; }
+
+        public User User { get; set; }
+        public DateTime CreatedAt { get; set; }
+        
+    }
+}

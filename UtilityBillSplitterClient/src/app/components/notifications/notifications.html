@@ -1,0 +1,140 @@
+<div class="notifications-container">
+      <div class="header">
+        <button class="btn btn-secondary" (click)="goBack()">← Back</button>
+        <h1>🔔 Notifications</h1>
+        <button class="btn btn-primary" (click)="showCreateForm = true" *ngIf="!showCreateForm">
+          <i class="icon">➕</i> Create Notification
+        </button>
+      </div>
+
+      <!-- Success/Error Messages -->
+      <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+      <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+      <!-- Create Notification Form -->
+      <div class="form-container" *ngIf="showCreateForm">
+        <h2>Create New Notification</h2>
+        <form [formGroup]="notificationForm" (ngSubmit)="createNotification()">
+          <div class="form-group">
+            <label for="message">Message *</label>
+            <textarea id="message" formControlName="message" placeholder="Enter notification message" rows="4"></textarea>
+            <div class="error" *ngIf="notificationForm.get('message')?.invalid && notificationForm.get('message')?.touched">
+              Message is required
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="groupId">Group</label>
+            <select #sel id="groupId" (change)="onGroupChange(sel.value)">
+              <option value="">Select group</option>
+              <option *ngFor="let g of groups" [value]="g.id">{{ g.name }}</option>
+            </select>
+          </div>
+
+          <div class="form-group" *ngIf="members.length">
+            <label>Select Users</label>
+            <div class="members-grid">
+              <label class="member-item" *ngFor="let m of members">
+                <input type="checkbox" [checked]="isUserSelected(m.userId)" (change)="onMemberChange($event, m.userId)">
+                <span>{{ m.username }} <small>({{ m.email }})</small></span>
+              </label>
+            </div>
+            <div class="error" *ngIf="showMemberError">Please select at least one user</div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" [disabled]="notificationForm.invalid || isLoading">
+              <span *ngIf="isLoading">Creating...</span>
+              <span *ngIf="!isLoading">Create Notification</span>
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="cancelCreate()">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading" *ngIf="isLoading && !showCreateForm">
+        <div class="spinner"></div>
+        <p>Loading notifications...</p>
+      </div>
+
+      <!-- Notifications List -->
+      <div class="notifications-list" *ngIf="!isLoading">
+        <div class="notifications-header" *ngIf="notifications.length > 0">
+          <h2>All Notifications ({{ notifications.length }})</h2>
+          <div class="filter-options">
+            <button class="btn btn-small" [class.active]="filterType === 'all'" (click)="setFilter('all')">All</button>
+            <button class="btn btn-small" [class.active]="filterType === 'unread'" (click)="setFilter('unread')">Unread</button>
+            <button class="btn btn-small" [class.active]="filterType === 'read'" (click)="setFilter('read')">Read</button>
+          </div>
+        </div>
+
+        <div class="notification-card" 
+             *ngFor="let notification of filteredNotifications" 
+             [class.unread]="!notification.isRead">
+          
+          <div class="notification-header">
+            <div class="notification-title">
+              <span class="notification-icon" [class]="getNotificationIcon(notification.type)">
+                {{ getNotificationEmoji(notification.type) }}
+              </span>
+              <div class="title-info">
+                <h3>{{ notification.title }}</h3>
+                <div class="notification-meta">
+                  <span class="user-badge">👤 {{ notification.user?.username || 'User #' + notification.userId }}</span>
+                  <span class="user-id">ID: {{ notification.userId }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="notification-timestamps">
+              <span class="time-ago">{{ notification.timeAgo || getTimeAgo(notification.createdAt) }}</span>
+              <span class="full-date">{{ notification.formattedDate || (notification.createdAt | date:'MMM dd, yyyy at hh:mm a') }}</span>
+              <span class="notification-status" *ngIf="!notification.isRead">🔴 New</span>
+            </div>
+            <div class="notification-actions">
+              <button 
+                class="info-btn" 
+                (click)="$event.stopPropagation(); toggleNotificationDetails(notification.id)"
+                [title]="isExpanded(notification.id) ? 'Hide Details' : 'Show Details'">
+                INFO
+              </button>
+              <button 
+                class="mark-read-btn" 
+                *ngIf="!notification.isRead" 
+                (click)="$event.stopPropagation(); markAsRead(notification.id)"
+                title="Mark as Read">
+                ✓
+              </button>
+            </div>
+          </div>
+
+          <div class="notification-content" *ngIf="isExpanded(notification.id)">
+            <p>{{ notification.message }}</p>
+            
+            <div class="notification-footer">
+              <div class="footer-left">
+                <span class="user-email" *ngIf="notification.user?.email">📧 {{ notification.user?.email }}</span>
+              </div>
+              <div class="footer-right">
+                <span class="iso-timestamp" title="Full timestamp">{{ notification.createdAt | date:'yyyy-MM-dd HH:mm:ss' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- No notifications for current filter -->
+        <div class="no-results" *ngIf="notifications.length > 0 && filteredNotifications.length === 0">
+          <div class="empty-icon">🔍</div>
+          <h3>No {{ filterType === 'all' ? '' : filterType }} notifications</h3>
+          <p>{{ getNoResultsMessage() }}</p>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!isLoading && notifications.length === 0 && !showCreateForm">
+        <div class="empty-icon">📭</div>
+        <h3>No notifications yet</h3>
+        <p>Create your first notification to get started</p>
+        <button class="btn btn-primary" (click)="showCreateForm = true">Create Notification</button>
+      </div>
+    </div>
